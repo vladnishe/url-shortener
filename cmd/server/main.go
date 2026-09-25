@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/vladnishe/url-shortener/internal/config"
+)
 
 func main() {
-	fmt.Println("hELLO!")
+	cfg, err := config.MustLoad()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(cfg)
 }
