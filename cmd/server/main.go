@@ -32,7 +32,7 @@ func main() {
 		log.Error("failed to initialize db", zap.Error(err))
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer db.Close(context.Background())
 
 	//r := router.NewRouter()
 
