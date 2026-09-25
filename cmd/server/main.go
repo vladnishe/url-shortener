@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,7 +11,8 @@ import (
 	"time"
 
 	"github.com/vladnishe/url-shortener/internal/config"
-	"github.com/vladnishe/url-shortener/internal/router"
+	"github.com/vladnishe/url-shortener/internal/logger"
+	"go.uber.org/zap"
 )
 
 const defaultCtxTimeout = 10 * time.Second
@@ -23,18 +23,20 @@ func main() {
 		panic(err)
 	}
 
-	r := router.NewRouter()
+	log := logger.NewLogger(cfg.Env)
+	defer log.Sync()
+	//r := router.NewRouter()
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Handler:      r,
+		Handler:      nil,
 		WriteTimeout: cfg.Timeout,
 		ReadTimeout:  cfg.Timeout,
 		IdleTimeout:  cfg.IdleTimeout,
 	}
 
 	go func() {
-		log.Printf("server started on port %d", cfg.Port)
+		log.Info("starting server...", zap.Int64("port", cfg.Port))
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
@@ -44,7 +46,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
 	<-sigs
-	log.Print("starting shutting down server...")
+	log.Debug("starting shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), defaultCtxTimeout)
 	defer cancel()
@@ -53,5 +55,5 @@ func main() {
 		fmt.Printf("failed to gracefully shutdown, making force shutdown")
 	}
 
-	log.Print("server stopped!")
+	log.Info("server stopped!")
 }
