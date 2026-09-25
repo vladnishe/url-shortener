@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/vladnishe/url-shortener/internal/config"
+	database "github.com/vladnishe/url-shortener/internal/db"
 	"github.com/vladnishe/url-shortener/internal/logger"
 	"go.uber.org/zap"
 )
@@ -18,13 +19,21 @@ import (
 const defaultCtxTimeout = 10 * time.Second
 
 func main() {
-	cfg, err := config.MustLoad()
+	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
 
 	log := logger.NewLogger(cfg.Env)
 	defer log.Sync()
+
+	db, err := database.NewPOSTGRES(cfg.DBUrl)
+	if err != nil {
+		log.Errorf("failed to initialize db: %v", err)
+	}
+
+	_ = db
+
 	//r := router.NewRouter()
 
 	srv := &http.Server{

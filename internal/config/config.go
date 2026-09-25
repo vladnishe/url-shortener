@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -20,19 +21,24 @@ type Config struct {
 	Env         string
 	Host        string
 	Port        int64
+	DBUrl       string
 	IdleTimeout time.Duration
 	Timeout     time.Duration
 }
 
-func MustLoad() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
+func Load() (*Config, error) {
+	_ = godotenv.Load() == nil
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		return nil, fmt.Errorf("db url is required")
 	}
 
 	return &Config{
 		Env:         getEnv("ENV", defaultEnv),
 		Host:        getEnv("HOST", defaultHost),
 		Port:        getEnvAsInt64("PORT", defaultPort),
+		DBUrl:       dbURL,
 		IdleTimeout: getEnvAsDuration("IDLE_TIMEOUT", defaultIdleTimeout),
 		Timeout:     getEnvAsDuration("TIMEOUT", defaultTimeout),
 	}, nil
