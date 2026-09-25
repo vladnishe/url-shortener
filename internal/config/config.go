@@ -21,24 +21,24 @@ type Config struct {
 	Env         string
 	Host        string
 	Port        int64
-	DBUrl       string
 	IdleTimeout time.Duration
 	Timeout     time.Duration
+	DBConfig
 }
 
 func Load() (*Config, error) {
-	_ = godotenv.Load() == nil
+	_ = godotenv.Load()
 
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		return nil, fmt.Errorf("db url is required")
+	dbCfg, err := loadDBConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to set database configuration: %v", err)
 	}
 
 	return &Config{
 		Env:         getEnv("ENV", defaultEnv),
 		Host:        getEnv("HOST", defaultHost),
 		Port:        getEnvAsInt64("PORT", defaultPort),
-		DBUrl:       dbURL,
+		DBConfig:    dbCfg,
 		IdleTimeout: getEnvAsDuration("IDLE_TIMEOUT", defaultIdleTimeout),
 		Timeout:     getEnvAsDuration("TIMEOUT", defaultTimeout),
 	}, nil

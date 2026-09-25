@@ -27,12 +27,12 @@ func main() {
 	log := logger.NewLogger(cfg.Env)
 	defer log.Sync()
 
-	db, err := database.NewPOSTGRES(cfg.DBUrl)
+	db, err := database.NewPOSTGRES(cfg.DSN())
 	if err != nil {
-		log.Errorf("failed to initialize db: %v", err)
+		log.Error("failed to initialize db", zap.Error(err))
+		os.Exit(1)
 	}
-
-	_ = db
+	defer db.Close()
 
 	//r := router.NewRouter()
 
